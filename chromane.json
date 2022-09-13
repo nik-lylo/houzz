@@ -1,0 +1,16 @@
+{
+  "name": "Houzz",
+  "logo_letter": "d",
+  "build_vue_app": true,
+  "watch": true,
+  "webpack": {
+    "entry": {
+      "content": "/js/content.js",
+      "injected": "/js/injected.js"
+    },
+    "devtool": "source-map",
+    "optimization": {
+      "minimize": false
+    }
+  }
+}

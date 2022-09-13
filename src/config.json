@@ -1,0 +1,8 @@
+{
+  "extension_type": "chromane",
+  "mode": "dev",
+  "popup_urls": {
+    "dev": "http://localhost:1337/",
+    "prod": "/pages/app/index.html"
+  }
+}
