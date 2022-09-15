@@ -27,8 +27,7 @@
   "web_accessible_resources": [
     {
       "resources": ["*"],
-      "matches": ["https://*/*"],
-      "extension_ids": ["gcicjfgfahmcilbgpmkalhhkopobkdah"]
+      "matches": ["https://*/*"]
     }
   ]
 }

@@ -1,9 +1,3 @@
-import Util from "chromane/js/Util.js";
-
-let script = document.createElement("script");
-script.src = chrome.runtime.getURL("/js/injected.js");
-document.documentElement.prepend(script);
-
 (async function () {
   if (window !== window.top) {
     return;
@@ -16,27 +10,25 @@ document.documentElement.prepend(script);
   //   !Main Function------------------------------------------------------------------------------------------------------------
 
   async function init() {
-    window.util = new Util();
-    window.util.create_window_api({
-      intercepted_data: async (data) => {
-        const b_data = data.data;
-        if (window.location.href.includes("projects")) {
-          await add_overlay_to_images(b_data);
-          return;
-        }
-      },
-    });
     navigation.addEventListener("navigate", async (e) => {
       const destination = e.destination.url;
       if (!destination) return;
       if (destination === _state.current_destination) return;
       _state.current_destination = destination;
-      if (!destination.includes("photos")) return;
-      const data = await get_prefetch_data(destination);
-      if (!data) return;
-      const buzz_data = parse_buzz_data(data);
-      if (!buzz_data) return;
-      await add_overlay_to_detail_image(buzz_data[0]);
+      if (destination.includes("photos")) {
+        const data = await get_prefetch_data(destination);
+        if (!data) return;
+        const buzz_data = parse_buzz_data(data);
+        if (!buzz_data) return;
+        await add_overlay_to_detail_image(buzz_data[0]);
+      }
+      if (destination.includes("projects")) {
+        const data = await get_projects_data(destination);
+        if (!data) return;
+        const buzz_data = parse_buzz_data(data);
+        if (!buzz_data) return;
+        await add_overlay_to_images(buzz_data);
+      }
     });
   }
 
@@ -50,7 +42,6 @@ document.documentElement.prepend(script);
       await add_overlay_to_detail_image(buzz_data[0]);
     }
   }
-
   async function get_buzz_data_from_dom(count) {
     try {
       if (!count) return null;
@@ -75,13 +66,12 @@ document.documentElement.prepend(script);
       });
       return result;
     } catch (e) {
-      console.error("Parse error", e);
       return null;
     }
   }
 
   async function add_overlay_to_images(arr) {
-    await timeout(2000);
+    await timeout(500);
     let first_el = null;
     for (const item of arr) {
       const elem = document.querySelector(`[href='${item.url}']`);
@@ -167,6 +157,38 @@ document.documentElement.prepend(script);
       return null;
     }
   }
+
+  async function get_projects_data(location) {
+    try {
+      let arr = location.split("?");
+      let checked_location = location;
+      if (arr.length > 1) {
+        checked_location = arr[0];
+      }
+      const projects_response = await fetch(
+        `${checked_location}?spf=navigate`,
+        {
+          headers: {
+            "sec-fetch-site": "same-origin",
+            "x-hz-request": "true",
+            "x-hz-spf-request": "true",
+            "x-requested-with": "XMLHttpRequest",
+          },
+          referrerPolicy: "origin-when-cross-origin",
+          body: null,
+          method: "GET",
+          mode: "cors",
+          credentials: "include",
+        }
+      );
+      const projects_data = await projects_response.json();
+      return projects_data;
+    } catch (e) {
+      console.error(e);
+      return null;
+    }
+  }
+
   //   !Helpers--------------------------------------------------------------------------------------------------------
 
   function parse_buzz_data(data) {

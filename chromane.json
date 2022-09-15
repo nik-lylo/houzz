@@ -5,8 +5,7 @@
   "watch": true,
   "webpack": {
     "entry": {
-      "content": "/js/content.js",
-      "injected": "/js/injected.js"
+      "content": "/js/content.js"
     },
     "devtool": "source-map",
     "optimization": {
