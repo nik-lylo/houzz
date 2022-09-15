@@ -8,6 +8,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "airtable": "^0.11.4",
     "chromane": "^1.0.33"
   },
   "repository": {

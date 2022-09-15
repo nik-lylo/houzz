@@ -1,0 +1,36 @@
+.chromane-houzz-overlay {
+  position: absolute;
+  top: 10px;
+  right: 20px;
+  font-size: 19px;
+  text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: white;
+  cursor: pointer;
+  padding: 3px 6px;
+  line-height: 1;
+  transition: all 0.3s ease;
+  border: 1px solid transparent;
+  z-index: 3px;
+  overflow: hidden;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.chromane-houzz-overlay:hover {
+  border-color: black;
+}
+
+.chromane-loader {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+}
+.chromane-loader svg {
+  width: 30px;
+  height: 30px;
+}

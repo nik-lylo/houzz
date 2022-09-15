@@ -1,9 +1,33 @@
+import Airtable from "airtable";
+
 (async function () {
   if (window !== window.top) {
     return;
   }
 
-  let _state = { current_destination: null };
+  let _state = {
+    current_destination: null,
+    loader: `<div class="chromane-loader"> <svg version="1.1" id="L9" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+      viewBox="0 0 100 100" enable-background="new 0 0 0 0" xml:space="preserve">
+      <path fill="#gray" d="M73,50c0-12.7-10.3-23-23-23S27,37.3,27,50 M30.9,50c0-10.5,8.5-19.1,19.1-19.1S69.1,39.5,69.1,50">
+        <animateTransform 
+           attributeName="transform" 
+           attributeType="XML" 
+           type="rotate"
+           dur="1s" 
+           from="0 50 50"
+           to="360 50 50" 
+           repeatCount="indefinite" />
+    </path>
+  </svg>
+  </div>
+  ​`,
+    air_api_key: "keyHJv4NjO0fmAWyv",
+    air_base: "appkOXbvYL0CXEJoh",
+    air_table_name: "Table",
+    air_table: null,
+    is_loading: false,
+  };
   await init();
   await exec_dom_data_get();
 
@@ -30,6 +54,8 @@
         await add_overlay_to_images(buzz_data);
       }
     });
+
+    await connect_to_airtable();
   }
 
   async function exec_dom_data_get() {
@@ -77,7 +103,15 @@
       const elem = document.querySelector(`[href='${item.url}']`);
       if (elem) {
         const overlay = create_overlay(item);
-        elem.append(overlay);
+        const is_overlay_exist = elem.querySelector(".chromane-houzz-overlay");
+        if (is_overlay_exist) {
+          is_overlay_exist.parentElement.replaceChild(
+            overlay,
+            is_overlay_exist
+          );
+        } else {
+          elem.append(overlay);
+        }
         if (!first_el) {
           first_el = elem;
         }
@@ -104,11 +138,12 @@
         const has_overlay = image.parentElement.querySelector(
           ".chromane-houzz-overlay"
         );
+        const overlay = create_overlay(obj);
+        overlay.style.fontSize = "22px";
+        overlay.style.right = "80px";
         if (has_overlay) {
-          has_overlay.innerHTML = `buzz:${obj.buzz_count}`;
+          has_overlay.parentElement.replaceChild(overlay, has_overlay);
         } else {
-          const overlay = create_overlay(obj);
-          overlay.style.fontSize = "22px";
           image.parentElement.append(overlay);
         }
       }
@@ -189,6 +224,32 @@
     }
   }
 
+  async function connect_to_airtable() {
+    const base = new Airtable({ apiKey: _state.air_api_key }).base(
+      _state.air_base
+    );
+    const table = base(_state.air_table_name);
+    _state.air_table = table;
+  }
+  async function handle_overlay_click(e, item) {
+    e.stopImmediatePropagation();
+    e.preventDefault();
+    if (_state.is_loading) return;
+    e.target.style.width = e.target.offsetWidth + "px";
+    e.target.style.height = e.target.offsetHeight + "px";
+    const fields = {
+      Link: item.url,
+      ["Buzz Count"]: item.buzz_count,
+    };
+    startLoading(e.target);
+    const response = await _state.air_table.create([
+      {
+        fields,
+      },
+    ]);
+    stopLoading(e.target, item.buzz_count);
+  }
+
   //   !Helpers--------------------------------------------------------------------------------------------------------
 
   function parse_buzz_data(data) {
@@ -221,20 +282,21 @@
     });
   }
 
+  function startLoading(el) {
+    el.innerHTML = _state.loader;
+    console.log(el);
+    _state.is_loading = true;
+  }
+  function stopLoading(el, buzz_count) {
+    el.innerHTML = `buzz:${buzz_count}`;
+    _state.is_loading = false;
+  }
+
   function create_overlay(item) {
     const div = document.createElement("div");
     div.classList.add("chromane-houzz-overlay");
     div.innerHTML = `buzz:${item.buzz_count}`;
-    div.style.position = "absolute";
-    div.style.top = "10px";
-    div.style.right = "20px";
-    div.style.fontSize = "19px";
-    div.style.textShadow =
-      "-1px 0 black, 0 1px black, 1px 0 black, 0 -1px black";
-    div.style.fontWeight = "700";
-    div.style.letterSpacing = "1px";
-    div.style.color = "white";
-
+    div.addEventListener("click", (e) => handle_overlay_click(e, item));
     return div;
   }
 })();
